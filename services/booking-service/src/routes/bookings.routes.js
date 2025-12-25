@@ -11,4 +11,6 @@ router.post("/", createBookingHandler);
 router.get("/:id", getBookingHandler);
 router.delete("/:id", cancelBookingHandler);
 
+
+
 export default router;

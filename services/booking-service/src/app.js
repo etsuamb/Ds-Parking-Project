@@ -8,6 +8,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "Booking Service is running" });
 });
 
+
 app.use("/bookings", bookingsRoutes);
 
 export default app;
