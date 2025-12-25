@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ParkingSpotReleasedEvent",
+  "description": "Emitted when a parking spot is released",
+  "type": "object",
+  "required": ["eventId", "spotId", "lotId", "timestamp", "reason"],
+  "properties": {
+    "eventId": { "type": "string" },
+    "spotId": { "type": "integer" },
+    "lotId": { "type": "integer" },
+    "previousBookingId": { "type": "integer" },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "type": "string",
+      "enum": ["cancelled", "timeout", "manual", "system"]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ParkingSpotReservedEvent",
+  "description": "Emitted when a parking spot is reserved",
+  "type": "object",
+  "required": ["eventId", "spotId", "lotId", "bookingId", "userId", "timestamp"],
+  "properties": {
+    "eventId": { "type": "string" },
+    "spotId": { "type": "integer" },
+    "lotId": { "type": "integer" },
+    "bookingId": { "type": "integer" },
+    "userId": { "type": "integer" },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

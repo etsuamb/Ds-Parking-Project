@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BookingCancelledEvent",
+  "description": "Emitted when an existing booking is cancelled",
+  "type": "object",
+  "required": ["eventId", "bookingId", "userId", "lotId", "spotId", "timestamp"],
+  "properties": {
+    "eventId": { "type": "string" },
+    "bookingId": { "type": "integer" },
+    "userId": { "type": "integer" },
+    "lotId": { "type": "integer" },
+    "spotId": { "type": "integer" },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 200
+    }
+  },
+  "additionalProperties": false
+}
