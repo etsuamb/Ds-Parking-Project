@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "booking.cancelled",
+  "type": "object",
+  "required": ["bookingId", "userId", "lotId", "spotId", "timestamp"],
+  "properties":
+  {
+    "bookingId": { "type": "integer" },
+    "userId": { "type": "integer" },
+    "lotId": { "type": "string" },
+    "spotId": { "type": "integer" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

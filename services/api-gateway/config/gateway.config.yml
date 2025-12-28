@@ -5,45 +5,55 @@ admin:
   port: 9876
   host: localhost
 
-# === API ENDPOINTS (What paths the gateway listens for) ===
+# === API ENDPOINTS (Public paths the gateway exposes) ===
 apiEndpoints:
   auth:
-    paths: '/auth/*'          # Matches /auth/register, /auth/login
-  bookings:
-    paths: '/bookings/*'      # Matches /bookings, /bookings/my, /bookings/1
-  parking:
-    paths: '/parking/*'       # Matches /parking/lots, /parking/lots/lot1
+    paths:
+      - /auth
+      - /auth/*
 
-# === SERVICE ENDPOINTS (Where to forward the requests) ===
+  bookings:
+    paths:
+      - /bookings
+      - /bookings/*
+
+  parking:
+    paths:
+      - /parking
+      - /parking/*
+
+# === SERVICE ENDPOINTS (Internal Docker service names + ports) ===
 serviceEndpoints:
-  auth:
-    url: 'http://127.0.0.1:3000'   # Auth Service port
-  bookings:
-    url: 'http://127.0.0.1:3001'   # Booking Service port  <--- MUST be "bookings" (exact match)
-  parking:
-    url: 'http://127.0.0.1:3002'   # Parking Service port
+  auth-service:
+    url: http://auth-service:3000
 
-# === POLICIES (What to do with matched requests) ===
+  booking-service:          # ← Fixed: was "bookings-service" (wrong)
+    url: http://booking-service:3001
+
+  parking-service:
+    url: http://parking-service:3002
+
+# === POLICIES ===
 policies:
-  - proxy                       # Only proxy policy needed
+  - proxy
 
-# === PIPELINES (Connect endpoints to services) ===
+# === PIPELINES (Connect public paths to internal services) ===
 pipelines:
   auth-pipeline:
     apiEndpoints:
-      - auth                    # Uses the "auth" apiEndpoint defined above
+      - auth
     policies:
       - proxy:
           - action:
-              serviceEndpoint: auth   # Forwards to auth serviceEndpoint
+              serviceEndpoint: auth-service
 
-  bookings-pipeline:           # Name can be anything, but must exist
+  bookings-pipeline:
     apiEndpoints:
-      - bookings               # MUST match the name in apiEndpoints ("bookings")
+      - bookings
     policies:
       - proxy:
           - action:
-              serviceEndpoint: bookings  # MUST match the name in serviceEndpoints ("bookings")
+              serviceEndpoint: booking-service   # ← Fixed: match serviceEndpoints name
 
   parking-pipeline:
     apiEndpoints:
@@ -51,13 +61,4 @@ pipelines:
     policies:
       - proxy:
           - action:
-              serviceEndpoint: parking
-
-# === PROBLEM HIGHLIGHTED ===
-# If any of these names don't match EXACTLY:
-# - apiEndpoints name: bookings
-# - serviceEndpoints name: bookings
-# - pipelines apiEndpoints: - bookings
-# - pipelines serviceEndpoint: bookings
-# → The route will NOT be found → 404
-# Your earlier versions likely had "booking" (singular) in one place → mismatch → 404 for /bookings
+              serviceEndpoint: parking-service

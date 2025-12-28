@@ -1,281 +1,181 @@
 openapi: 3.0.3
 info:
-  title: Distributed Smart Parking System API
-  description: |
-    REST API specification for the Distributed Smart Parking System.
-    Includes public-facing client APIs and internal service-to-service APIs.
+  title: Distributed Parking System API
+  description: API Gateway for Auth, Booking, Parking, and Notification services
   version: 1.0.0
 
 servers:
-  - url: http://localhost:3000
-    description: Local development server
+  - url: http://localhost:8080
+    description: API Gateway
 
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
 
-    internalAuth:
-      type: apiKey
-      in: header
-      name: X-Internal-Token
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
 
-security:
-  - bearerAuth: []
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+
+    BookingRequest:
+      type: object
+      required: [lotId]
+      properties:
+        lotId:
+          type: string
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        lot_id:
+          type: string
+        spot_id:
+          type: integer
+        status:
+          type: string
+          enum: [ACTIVE, CANCELLED]
+        created_at:
+          type: string
+          format: date-time
+
+    ParkingLotSummary:
+      type: object
+      properties:
+        lot_id:
+          type: string
+        total:
+          type: integer
+        available:
+          type: integer
 
 paths:
-  # ─────────────────────────────────────────────
-  # PUBLIC API (Client → API Gateway)
-  # ─────────────────────────────────────────────
-
   /auth/register:
     post:
       summary: Register a new user
-      tags: [Authentication]
-      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [username, password]
-              properties:
-                username:
-                  type: string
-                  example: john_doe
-                password:
-                  type: string
-                  format: password
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
         "201":
           description: User registered successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User registered successfully
-        "409":
-          description: Username already exists
 
   /auth/login:
     post:
-      summary: Authenticate user and obtain JWT
-      tags: [Authentication]
-      security: []
+      summary: Login and get JWT
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [username, password]
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
-          description: Authentication successful
+          description: Login successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
+                $ref: "#/components/schemas/AuthResponse"
 
-  /parking-lots:
+  /bookings:
+    post:
+      summary: Create a booking
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingRequest"
+      responses:
+        "201":
+          description: Booking created
+
+  /bookings/{bookingId}:
     get:
-      summary: List parking lots with availability
-      tags: [Parking]
+      summary: Get booking details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         "200":
-          description: List of parking lots
+          description: Booking found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+    delete:
+      summary: Cancel a booking
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking cancelled
+
+  /parking/lots:
+    get:
+      summary: List parking lots with availability
+      responses:
+        "200":
+          description: Parking lots
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id: { type: integer }
-                    name: { type: string }
-                    location: { type: string }
-                    totalSpots: { type: integer }
-                    availableSpots: { type: integer }
+                  $ref: "#/components/schemas/ParkingLotSummary"
 
-  /parking-lots/{lotId}:
+  /parking/lots/{lotId}:
     get:
       summary: Get parking lot details
-      tags: [Parking]
       parameters:
         - name: lotId
           in: path
           required: true
-          schema: { type: integer }
+          schema:
+            type: string
       responses:
         "200":
           description: Parking lot details
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id: { type: integer }
-                  name: { type: string }
-                  location: { type: string }
-                  spots:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        spotId: { type: integer }
-                        status: { type: string }
-
-  /bookings:
-    post:
-      summary: Create a new booking
-      tags: [Bookings]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [lotId]
-              properties:
-                lotId: { type: integer }
-                spotId: { type: integer }
-      responses:
-        "201":
-          description: Booking created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  bookingId: { type: integer }
-                  status:
-                    type: string
-                    example: CONFIRMED
-
-  /bookings/{bookingId}:
-    get:
-      summary: Get booking details
-      tags: [Bookings]
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Booking details
-        "404":
-          description: Booking not found
-
-    delete:
-      summary: Cancel a booking
-      tags: [Bookings]
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Booking cancelled
-
-  # ─────────────────────────────────────────────
-  # INTERNAL SERVICE-TO-SERVICE APIs
-  # ─────────────────────────────────────────────
-
-  /internal/users:
-    post:
-      summary: Internal - Create user record
-      tags: [Internal - Auth]
-      security:
-        - internalAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [username, passwordHash]
-              properties:
-                username: { type: string }
-                passwordHash: { type: string }
-      responses:
-        "201":
-          description: User created internally
-
-  /internal/bookings:
-    post:
-      summary: Internal - Create booking record
-      tags: [Internal - Booking]
-      security:
-        - internalAuth: []
-      responses:
-        "201":
-          description: Booking stored
-
-  /internal/bookings/{id}:
-    get:
-      summary: Internal - Get booking details
-      tags: [Internal - Booking]
-      security:
-        - internalAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Booking details
-
-  /internal/parking-lots/{lotId}/spots/{spotId}/reserve:
-    post:
-      summary: Internal - Reserve parking spot
-      tags: [Internal - Parking]
-      security:
-        - internalAuth: []
-      parameters:
-        - name: lotId
-          in: path
-          required: true
-          schema: { type: integer }
-        - name: spotId
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Spot reserved
-
-  /internal/parking-lots/{lotId}/spots/{spotId}/release:
-    post:
-      summary: Internal - Release parking spot
-      tags: [Internal - Parking]
-      security:
-        - internalAuth: []
-      parameters:
-        - name: lotId
-          in: path
-          required: true
-          schema: { type: integer }
-        - name: spotId
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Spot released

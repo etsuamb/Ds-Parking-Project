@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "parking.spot.released",
+  "type": "object",
+  "required": ["spotId", "lotId", "bookingId", "timestamp"],
+  "properties":
+  {
+    "spotId": { "type": "integer" },
+    "lotId": { "type": "string" },
+    "bookingId": { "type": "integer" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

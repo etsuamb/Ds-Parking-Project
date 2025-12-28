@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 
 const client = createClient({
-  url: "redis://localhost:6379",  // or your working URL
+  url: "redis://redis:6379",  // or your working URL
 });
 
 client.connect();

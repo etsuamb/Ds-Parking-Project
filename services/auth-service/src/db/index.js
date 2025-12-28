@@ -4,7 +4,7 @@ const { Pool } = pkg;
 
 export const pool = new Pool({
   user: "postgres",              // your DB user
-  host: "localhost",             // usually localhost
+  host: "auth-db",             // usually localhost
   database: "auth_db",           // your database
   password: "pgforcss", // the password you use in pgAdmin
   port: 5432,

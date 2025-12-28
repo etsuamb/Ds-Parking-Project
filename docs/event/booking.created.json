@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "booking.created",
+  "type": "object",
+  "required": ["bookingId", "userId", "lotId", "timestamp"],
+  "properties":
+  {
+    "bookingId": { "type": "integer" },
+    "userId": { "type": "integer" },
+    "lotId": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}
