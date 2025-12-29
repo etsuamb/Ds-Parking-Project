@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { initSocket, disconnectSocket } from './utils/socket';
 import { useAuth } from './hooks/useAuth';
-import toast from 'react-hot-toast';
+import { useNotification } from './hooks/useNotification';
 
 // Components
 import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import NotificationModal from './components/NotificationModal';
 
 // Pages
 import Home from './pages/Home';
@@ -19,10 +21,19 @@ import ParkingLotDetails from './pages/ParkingLotDetails';
 import CreateBooking from './pages/CreateBooking';
 import MyBookings from './pages/MyBookings';
 import BookingDetails from './pages/BookingDetails';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminBookings from './pages/AdminBookings';
+import AdminParking from './pages/AdminParking';
 import NotFound from './pages/NotFound';
 
-function App() {
-  const { isAuthenticated } = useAuth();
+function AppContent() {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+  const { notification, showNotification, hideNotification } = useNotification();
+  
+  // Only show sidebar when authenticated and not on login/register pages
+  const showSidebar = !loading && isAuthenticated && !['/login', '/register'].includes(location.pathname);
 
   useEffect(() => {
     // Initialize socket connection only if authenticated
@@ -32,10 +43,7 @@ function App() {
     // Listen for notifications
     const notificationHandler = (data) => {
       const message = typeof data === 'string' ? data : data.message || 'New notification';
-      toast.success(message, {
-        duration: 5000,
-        position: 'top-right',
-      });
+      showNotification(message, 'success', 4000);
     };
 
     socket.on('notification', notificationHandler);
@@ -46,77 +54,104 @@ function App() {
       // Don't disconnect socket completely, just remove listeners
       // This allows the socket to stay connected for other components
     };
-  }, []);
+  }, [showNotification]);
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-            success: {
-              duration: 3000,
-              iconTheme: {
-                primary: '#10b981',
-                secondary: '#fff',
-              },
-            },
-            error: {
-              duration: 4000,
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
-              },
-            },
-          }}
-        />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/parking" element={<Parking />} />
-          <Route path="/parking/:lotId" element={<ParkingLotDetails />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings/new"
-            element={
-              <ProtectedRoute>
-                <CreateBooking />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute>
-                <MyBookings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings/:id"
-            element={
-              <ProtectedRoute>
-                <BookingDetails />
-              </ProtectedRoute>
-            }
-          />
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="flex pt-16">
+        {showSidebar && <Sidebar />}
+        <main className={`flex-1 transition-all duration-300 ${showSidebar ? 'ml-64' : ''}`}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/parking" element={<Parking />} />
+            <Route path="/parking/:lotId" element={<ParkingLotDetails />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bookings/new"
+              element={
+                <ProtectedRoute>
+                  <CreateBooking />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bookings"
+              element={
+                <ProtectedRoute>
+                  <MyBookings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bookings/:id"
+              element={
+                <ProtectedRoute>
+                  <BookingDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/bookings"
+              element={
+                <AdminRoute>
+                  <AdminBookings />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/parking"
+              element={
+                <AdminRoute>
+                  <AdminParking />
+                </AdminRoute>
+              }
+            />
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </main>
       </div>
+      {notification && (
+        <NotificationModal
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

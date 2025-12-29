@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { bookingsAPI } from '../api/bookings';
 import { parkingAPI } from '../api/parking';
+import { useNotification } from '../hooks/useNotification';
+import NotificationModal from '../components/NotificationModal';
 import LoadingSpinner from '../components/LoadingSpinner';
-import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [lots, setLots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { notification, showNotification, hideNotification } = useNotification();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,7 +22,7 @@ const Dashboard = () => {
         setBookings(Array.isArray(bookingsData) ? bookingsData : []);
         setLots(Array.isArray(lotsData) ? lotsData : []);
       } catch (error) {
-        toast.error('Failed to load dashboard data');
+        showNotification('Failed to load dashboard data', 'error');
       } finally {
         setLoading(false);
       }
@@ -38,8 +40,17 @@ const Dashboard = () => {
   }
 
   const activeBookings = bookings.filter((b) => b.status !== 'cancelled');
-  const totalSpots = lots.reduce((sum, lot) => sum + (lot.totalSpots || 0), 0);
-  const availableSpots = lots.reduce((sum, lot) => sum + (lot.availableSpots || 0), 0);
+  
+  // Calculate total and available spots from real database data
+  const totalSpots = lots.reduce((sum, lot) => {
+    const total = Number(lot.totalSpots) || Number(lot.total_spots) || 0;
+    return sum + total;
+  }, 0);
+  
+  const availableSpots = lots.reduce((sum, lot) => {
+    const available = Number(lot.availableSpots) || Number(lot.available_spots) || Number(lot.available) || 0;
+    return sum + available;
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -92,10 +103,12 @@ const Dashboard = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <div className="font-medium text-gray-900">
-                            Lot {booking.lotId} - Spot {booking.spotId}
+                            Lot {booking.lotId || booking.lot_id} - Spot {booking.spotId || booking.spot_id || 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {new Date(booking.createdAt).toLocaleString()}
+                            {booking.createdAt || booking.created_at
+                              ? new Date(booking.createdAt || booking.created_at).toLocaleString()
+                              : 'N/A'}
                           </div>
                         </div>
                         <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -158,6 +171,14 @@ const Dashboard = () => {
           </Link>
         </div>
       </div>
+      {notification && (
+        <NotificationModal
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
     </div>
   );
 };

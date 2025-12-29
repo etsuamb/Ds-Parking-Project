@@ -7,8 +7,12 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 
 export const initSocket = () => {
   if (!socket) {
-    // Socket.io-client expects http:// or https://, it will upgrade to WebSocket automatically
-    socket = io('http://localhost:4000', {
+    // Connect directly to notification service on port 4000
+    // Express Gateway doesn't fully support socket.io WebSocket proxying
+    // The notification service is now exposed on port 4000 in docker-compose
+    const socketUrl = 'http://localhost:4000';
+    
+    socket = io(socketUrl, {
       transports: ['polling', 'websocket'], // Try polling first, then websocket
       reconnection: true,
       reconnectionDelay: 1000,

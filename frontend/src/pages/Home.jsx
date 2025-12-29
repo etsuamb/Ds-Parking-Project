@@ -1,13 +1,26 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import Logo from '../components/Logo';
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  
+  // Don't show auth-dependent content until loading is complete
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
+          <div className="flex justify-center items-center mb-6">
+            <Logo className="w-20 h-20" />
+          </div>
           <h1 className="text-5xl font-extrabold text-gray-900 sm:text-6xl">
             <span className="text-primary-600">Smart Parking</span> System
           </h1>

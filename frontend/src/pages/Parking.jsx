@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { parkingAPI } from '../api/parking';
+import { useNotification } from '../hooks/useNotification';
+import NotificationModal from '../components/NotificationModal';
 import LoadingSpinner from '../components/LoadingSpinner';
-import toast from 'react-hot-toast';
 
 const Parking = () => {
   const [lots, setLots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { notification, showNotification, hideNotification } = useNotification();
 
   useEffect(() => {
     const fetchLots = async () => {
@@ -14,7 +16,7 @@ const Parking = () => {
         const data = await parkingAPI.getLots();
         setLots(Array.isArray(data) ? data : []);
       } catch (error) {
-        toast.error('Failed to load parking lots');
+        showNotification('Failed to load parking lots', 'error');
       } finally {
         setLoading(false);
       }
@@ -114,6 +116,14 @@ const Parking = () => {
           </div>
         )}
       </div>
+      {notification && (
+        <NotificationModal
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
     </div>
   );
 };

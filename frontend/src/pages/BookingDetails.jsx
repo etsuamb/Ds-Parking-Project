@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { bookingsAPI } from '../api/bookings';
+import { useNotification } from '../hooks/useNotification';
+import NotificationModal from '../components/NotificationModal';
 import LoadingSpinner from '../components/LoadingSpinner';
-import toast from 'react-hot-toast';
 
 const BookingDetails = () => {
   const { id } = useParams();
@@ -10,6 +11,8 @@ const BookingDetails = () => {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const { notification, showNotification, hideNotification } = useNotification();
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -17,8 +20,8 @@ const BookingDetails = () => {
         const data = await bookingsAPI.getBooking(id);
         setBooking(data);
       } catch (error) {
-        toast.error('Failed to load booking details');
-        navigate('/bookings');
+        showNotification('Failed to load booking details', 'error');
+        setTimeout(() => navigate('/bookings'), 2000);
       } finally {
         setLoading(false);
       }
@@ -27,22 +30,27 @@ const BookingDetails = () => {
     fetchBooking();
   }, [id, navigate]);
 
-  const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) {
-      return;
-    }
+  const handleCancelClick = () => {
+    setShowCancelModal(true);
+  };
 
+  const handleCancelConfirm = async () => {
     setCancelling(true);
+    setShowCancelModal(false);
 
     try {
       await bookingsAPI.cancelBooking(id);
-      toast.success('Booking cancelled successfully');
-      navigate('/bookings');
+      showNotification('Booking cancelled successfully', 'success', 2000);
+      setTimeout(() => navigate('/bookings'), 2000);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to cancel booking');
+      showNotification(error.response?.data?.message || 'Failed to cancel booking', 'error');
     } finally {
       setCancelling(false);
     }
+  };
+
+  const handleCancelModalClose = () => {
+    setShowCancelModal(false);
   };
 
   if (loading) {
@@ -110,28 +118,32 @@ const BookingDetails = () => {
                 <div className="text-sm font-medium text-gray-500">Parking Lot</div>
                 <div className="mt-1 text-lg font-semibold text-gray-900">
                   <Link
-                    to={`/parking/${booking.lotId}`}
+                    to={`/parking/${booking.lotId || booking.lot_id}`}
                     className="text-primary-600 hover:text-primary-700"
                   >
-                    Lot {booking.lotId}
+                    Lot {booking.lotId || booking.lot_id}
                   </Link>
                 </div>
               </div>
               <div>
                 <div className="text-sm font-medium text-gray-500">Parking Spot</div>
-                <div className="mt-1 text-lg font-semibold text-gray-900">Spot {booking.spotId}</div>
+                <div className="mt-1 text-lg font-semibold text-gray-900">
+                  {booking.spotId || booking.spot_id ? `Spot ${booking.spotId || booking.spot_id}` : 'N/A'}
+                </div>
               </div>
               <div>
                 <div className="text-sm font-medium text-gray-500">Created At</div>
                 <div className="mt-1 text-lg text-gray-900">
-                  {new Date(booking.createdAt).toLocaleString()}
+                  {booking.createdAt || booking.created_at
+                    ? new Date(booking.createdAt || booking.created_at).toLocaleString()
+                    : 'N/A'}
                 </div>
               </div>
-              {booking.updatedAt && (
+              {(booking.updatedAt || booking.updated_at) && (
                 <div>
                   <div className="text-sm font-medium text-gray-500">Last Updated</div>
                   <div className="mt-1 text-lg text-gray-900">
-                    {new Date(booking.updatedAt).toLocaleString()}
+                    {new Date(booking.updatedAt || booking.updated_at).toLocaleString()}
                   </div>
                 </div>
               )}
@@ -140,7 +152,7 @@ const BookingDetails = () => {
             {booking.status === 'active' && (
               <div className="pt-6 border-t border-gray-200">
                 <button
-                  onClick={handleCancel}
+                  onClick={handleCancelClick}
                   disabled={cancelling}
                   className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -151,6 +163,60 @@ const BookingDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                <svg
+                  className="w-6 h-6 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                Cancel Booking?
+              </h3>
+              <p className="text-sm text-gray-500 text-center mb-6">
+                Are you sure you want to cancel this booking? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelModalClose}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                >
+                  Keep Booking
+                </button>
+                <button
+                  onClick={handleCancelConfirm}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                >
+                  Cancel Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {notification && (
+        <NotificationModal
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
     </div>
   );
 };

@@ -7,7 +7,7 @@ export const bookingsAPI = {
   },
 
   getMyBookings: async () => {
-    const response = await api.get('/bookings/user/me');
+    const response = await api.get('/bookings/me');
     return response.data;
   },
 

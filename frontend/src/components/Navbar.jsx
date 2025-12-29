@@ -1,56 +1,89 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useState, useEffect } from 'react';
+import Logo from './Logo';
 
 const Navbar = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          setUserInfo({
+            username: payload.username || 'User',
+            email: payload.email || '',
+            role: payload.role || 'USER',
+          });
+        } catch (e) {
+          console.error('Error decoding token:', e);
+        }
+      }
+    } else {
+      setUserInfo(null);
+    }
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  // Don't render until auth state is determined
+  if (loading) {
+    return (
+      <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+                <Logo className="w-10 h-10" />
+                <span className="text-2xl font-bold text-primary-600">Smart Parking</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
+          <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <span className="text-2xl font-bold text-primary-600">🚗 Smart Parking</span>
             </Link>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link
-                to="/parking"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-600"
-              >
-                Parking Lots
-              </Link>
-              {isAuthenticated && (
-                <>
-                  <Link
-                    to="/dashboard"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-600"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/bookings"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-600"
-                  >
-                    My Bookings
-                  </Link>
-                </>
-              )}
-            </div>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Logout
-              </button>
+              <>
+                {userInfo?.role === 'ADMIN' && (
+                  <span className="px-3 py-1 text-xs font-semibold text-white bg-purple-600 rounded-full">
+                    ADMIN
+                  </span>
+                )}
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+                  title={userInfo?.email || 'Profile'}
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-lg cursor-pointer hover:bg-primary-700 transition-colors">
+                    {userInfo?.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Logout
+                </button>
+              </>
             ) : (
               <div className="flex space-x-4">
                 <Link

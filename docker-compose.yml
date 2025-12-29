@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: pgforcss
       POSTGRES_DB: parking_booking_db
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - ./backend/init-sql/booking-init.sql:/docker-entrypoint-initdb.d/booking-init.sql
 
@@ -68,6 +68,8 @@ services:
 
   notification-service:
     build: ./backend/services/notification-service
+    ports:
+      - "4000:4000"
     depends_on:
       - redis
 

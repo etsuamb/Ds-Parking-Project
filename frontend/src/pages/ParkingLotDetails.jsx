@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { parkingAPI } from '../api/parking';
+import { useNotification } from '../hooks/useNotification';
+import NotificationModal from '../components/NotificationModal';
 import LoadingSpinner from '../components/LoadingSpinner';
-import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 
 const ParkingLotDetails = () => {
@@ -11,6 +12,7 @@ const ParkingLotDetails = () => {
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuth();
+  const { notification, showNotification, hideNotification } = useNotification();
 
   useEffect(() => {
     const fetchLotDetails = async () => {
@@ -19,7 +21,7 @@ const ParkingLotDetails = () => {
         setLot(data);
         setSpots(Array.isArray(data.spots) ? data.spots : []);
       } catch (error) {
-        toast.error('Failed to load parking lot details');
+        showNotification('Failed to load parking lot details', 'error');
       } finally {
         setLoading(false);
       }
@@ -99,7 +101,9 @@ const ParkingLotDetails = () => {
                   }`}
                 >
                   <div className="text-center">
-                    <div className="text-lg font-bold text-gray-900">Spot {spot.id}</div>
+                    <div className="text-lg font-bold text-gray-900">
+                      {spot.spotNumber || `Spot ${spot.id}`}
+                    </div>
                     <div
                       className={`mt-2 text-xs font-semibold px-2 py-1 rounded-full inline-block ${
                         spot.status === 'available'
@@ -135,6 +139,14 @@ const ParkingLotDetails = () => {
           </div>
         )}
       </div>
+      {notification && (
+        <NotificationModal
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
     </div>
   );
 };

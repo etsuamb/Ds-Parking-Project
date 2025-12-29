@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { bookingsAPI } from '../api/bookings';
 import { parkingAPI } from '../api/parking';
+import { useNotification } from '../hooks/useNotification';
+import NotificationModal from '../components/NotificationModal';
 import LoadingSpinner from '../components/LoadingSpinner';
-import toast from 'react-hot-toast';
 
 const CreateBooking = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +15,7 @@ const CreateBooking = () => {
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const { notification, showNotification, hideNotification } = useNotification();
 
   useEffect(() => {
     const fetchLots = async () => {
@@ -21,7 +23,7 @@ const CreateBooking = () => {
         const data = await parkingAPI.getLots();
         setLots(Array.isArray(data) ? data : []);
       } catch (error) {
-        toast.error('Failed to load parking lots');
+        showNotification('Failed to load parking lots', 'error');
       } finally {
         setLoading(false);
       }
@@ -42,10 +44,10 @@ const CreateBooking = () => {
         const availableSpots = (data.spots || []).filter((spot) => spot.status === 'available');
         setSpots(availableSpots);
         if (availableSpots.length === 0) {
-          toast.error('No available spots in this lot');
+          showNotification('No available spots in this lot', 'error');
         }
       } catch (error) {
-        toast.error('Failed to load spots');
+        showNotification('Failed to load spots', 'error');
         setSpots([]);
       }
     };
@@ -57,7 +59,7 @@ const CreateBooking = () => {
     e.preventDefault();
     
     if (!selectedLotId || !selectedSpotId) {
-      toast.error('Please select a lot and spot');
+      showNotification('Please select a lot and spot', 'error');
       return;
     }
 
@@ -65,10 +67,10 @@ const CreateBooking = () => {
 
     try {
       const booking = await bookingsAPI.createBooking(selectedLotId, selectedSpotId);
-      toast.success('Booking created successfully!');
-      navigate(`/bookings/${booking.id || booking.bookingId}`);
+      showNotification('Booking created successfully!', 'success', 2000);
+      setTimeout(() => navigate(`/bookings/${booking.id || booking.bookingId}`), 2000);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create booking');
+      showNotification(error.response?.data?.message || 'Failed to create booking', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -134,7 +136,7 @@ const CreateBooking = () => {
                     <option value="">Choose a spot...</option>
                     {spots.map((spot) => (
                       <option key={spot.id} value={spot.id}>
-                        Spot {spot.id}
+                        {spot.spotNumber || `Spot ${spot.id}`}
                       </option>
                     ))}
                   </select>
@@ -161,6 +163,14 @@ const CreateBooking = () => {
           </form>
         </div>
       </div>
+      {notification && (
+        <NotificationModal
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
     </div>
   );
 };

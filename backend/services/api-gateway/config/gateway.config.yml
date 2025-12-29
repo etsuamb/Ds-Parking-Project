@@ -5,7 +5,12 @@ admin:
   port: 9876
   host: localhost
 
-# === API ENDPOINTS (Public paths the gateway exposes) ===
+# === POLICIES ===
+policies:
+  - cors          # ← Added for frontend CORS
+  - proxy
+
+# === API ENDPOINTS (Public paths exposed by gateway) ===
 apiEndpoints:
   auth:
     paths:
@@ -22,20 +27,24 @@ apiEndpoints:
       - /parking
       - /parking/*
 
+  notifications:   # ← New: for WebSocket
+    paths:
+      - /socket.io
+      - /socket.io/*
+
 # === SERVICE ENDPOINTS (Internal Docker service names + ports) ===
 serviceEndpoints:
   auth-service:
     url: http://auth-service:3000
 
-  booking-service:          # ← Fixed: was "bookings-service" (wrong)
+  booking-service:
     url: http://booking-service:3001
 
   parking-service:
     url: http://parking-service:3002
 
-# === POLICIES ===
-policies:
-  - proxy
+  notification-service:   # ← New: for WebSocket
+    url: http://notification-service:4000
 
 # === PIPELINES (Connect public paths to internal services) ===
 pipelines:
@@ -43,6 +52,14 @@ pipelines:
     apiEndpoints:
       - auth
     policies:
+      - cors:                     # ← Allow frontend
+          - action:
+              origin: "http://localhost:5173"
+              methods: GET,POST,PUT,DELETE,OPTIONS
+              credentials: true
+              allowedHeaders:
+                - Content-Type
+                - Authorization
       - proxy:
           - action:
               serviceEndpoint: auth-service
@@ -51,14 +68,36 @@ pipelines:
     apiEndpoints:
       - bookings
     policies:
+      - cors:                     # ← Same for bookings
+          - action:
+              origin: "http://localhost:5173"
+              methods: GET,POST,PUT,DELETE,OPTIONS
+              credentials: true
+              allowedHeaders:
+                - Content-Type
+                - Authorization
       - proxy:
           - action:
-              serviceEndpoint: booking-service   # ← Fixed: match serviceEndpoints name
+              serviceEndpoint: booking-service
 
   parking-pipeline:
     apiEndpoints:
       - parking
     policies:
+      - cors:                     # ← Same for parking
+          - action:
+              origin: "http://localhost:5173"
+              methods: GET,POST,PUT,DELETE,OPTIONS
+              credentials: true
       - proxy:
           - action:
               serviceEndpoint: parking-service
+
+  notifications-pipeline:       # ← New: WebSocket proxy
+    apiEndpoints:
+      - notifications
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: notification-service
+              ws: true              # ← Critical: enables WebSocket proxying
