@@ -18,19 +18,7 @@ const Sidebar = () => {
     { path: '/bookings/new', label: 'New Booking', icon: '➕' },
   ];
 
-  const adminLinks = [
-    { path: '/admin', label: 'Admin Dashboard', icon: '🛡️' },
-    { path: '/admin/bookings', label: 'All Bookings', icon: '📋' },
-    { path: '/admin/parking', label: 'Parking Lots', icon: '🅿️' },
-  ];
-
-  const { isAdmin } = useAuth();
-  
-  const links = isAuthenticated 
-    ? isAdmin
-      ? [...publicLinks, ...protectedLinks, ...adminLinks]
-      : [...publicLinks, ...protectedLinks]
-    : publicLinks;
+  const links = isAuthenticated ? [...publicLinks, ...protectedLinks] : publicLinks;
 
   return (
     <aside className="fixed left-0 top-16 bottom-0 w-64 bg-white shadow-lg border-r border-gray-200 z-40">

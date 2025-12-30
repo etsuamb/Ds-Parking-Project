@@ -63,11 +63,6 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                {userInfo?.role === 'ADMIN' && (
-                  <span className="px-3 py-1 text-xs font-semibold text-white bg-purple-600 rounded-full">
-                    ADMIN
-                  </span>
-                )}
                 <Link
                   to="/profile"
                   className="flex items-center space-x-2 hover:opacity-80 transition-opacity"

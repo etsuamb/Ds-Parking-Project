@@ -1,3 +1,10 @@
+import express from "express";
+import authenticate from "../middleware/authenticate.js";
+import isAdmin from "../middleware/isAdmin.js";
+import { pool } from "../db/index.js";
+
+const router = express.Router();
+
 router.get('/lots', authenticate, isAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -15,3 +22,5 @@ router.get('/lots', authenticate, isAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+export default router;

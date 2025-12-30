@@ -22,10 +22,20 @@ apiEndpoints:
       - /bookings
       - /bookings/*
 
+  admin-bookings:
+    paths:
+      - /admin/bookings
+      - /admin/bookings/*
+
   parking:
     paths:
       - /parking
       - /parking/*
+
+  admin-parking:
+    paths:
+      - /admin/lots
+      - /admin/lots/*
 
   notifications:   # ← New: for WebSocket
     paths:
@@ -79,6 +89,38 @@ pipelines:
       - proxy:
           - action:
               serviceEndpoint: booking-service
+
+  admin-bookings-pipeline:
+    apiEndpoints:
+      - admin-bookings
+    policies:
+      - cors:                     # ← CORS for admin bookings
+          - action:
+              origin: "http://localhost:5173"
+              methods: GET,POST,PUT,DELETE,OPTIONS
+              credentials: true
+              allowedHeaders:
+                - Content-Type
+                - Authorization
+      - proxy:
+          - action:
+              serviceEndpoint: booking-service
+
+  admin-parking-pipeline:
+    apiEndpoints:
+      - admin-parking
+    policies:
+      - cors:                     # ← CORS for admin parking
+          - action:
+              origin: "http://localhost:5173"
+              methods: GET,POST,PUT,DELETE,OPTIONS
+              credentials: true
+              allowedHeaders:
+                - Content-Type
+                - Authorization
+      - proxy:
+          - action:
+              serviceEndpoint: parking-service
 
   parking-pipeline:
     apiEndpoints:

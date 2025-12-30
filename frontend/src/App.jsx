@@ -8,7 +8,6 @@ import { useNotification } from './hooks/useNotification';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
 import NotificationModal from './components/NotificationModal';
 
 // Pages
@@ -22,9 +21,6 @@ import CreateBooking from './pages/CreateBooking';
 import MyBookings from './pages/MyBookings';
 import BookingDetails from './pages/BookingDetails';
 import Profile from './pages/Profile';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminBookings from './pages/AdminBookings';
-import AdminParking from './pages/AdminParking';
 import NotFound from './pages/NotFound';
 
 function AppContent() {
@@ -61,7 +57,9 @@ function AppContent() {
       <Navbar />
       <div className="flex pt-16">
         {showSidebar && <Sidebar />}
-        <main className={`flex-1 transition-all duration-300 ${showSidebar ? 'ml-64' : ''}`}>
+        <main className={`flex-1 transition-all duration-300 ${
+          showSidebar ? 'ml-64' : ''
+        }`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -106,30 +104,6 @@ function AppContent() {
                 <ProtectedRoute>
                   <Profile />
                 </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/bookings"
-              element={
-                <AdminRoute>
-                  <AdminBookings />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/parking"
-              element={
-                <AdminRoute>
-                  <AdminParking />
-                </AdminRoute>
               }
             />
           <Route path="*" element={<NotFound />} />

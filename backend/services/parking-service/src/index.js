@@ -3,6 +3,7 @@ import { subscribe } from "./messaging/eventSubscriber.js";
 import { handleBookingCreated } from "./events/bookingCreated.handler.js";
 import { handleBookingCancelled } from "./events/bookingCancelled.handler.js";
 import parkingRouter from "./routes/parking.routes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -15,6 +16,7 @@ subscribe("booking.cancelled", handleBookingCancelled);
 
 // Routes
 app.use("/parking", parkingRouter);
+app.use("/admin", adminRoutes);
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {

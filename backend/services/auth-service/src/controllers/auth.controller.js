@@ -3,7 +3,7 @@ import { pool } from "../db/index.js";
 import jwt from "jsonwebtoken";
 
 export async function register(req, res) {
-  const { username, email, password } = req.body;
+  const { username, email, password, role = 'USER' } = req.body;
 
   // Basic input validation
   if (!username || !email || !password) {
@@ -16,12 +16,17 @@ export async function register(req, res) {
     return res.status(400).json({ message: "Invalid email format" });
   }
 
+  // Role validation
+  if (role && !['USER', 'ADMIN'].includes(role)) {
+    return res.status(400).json({ message: "Invalid role. Must be 'USER' or 'ADMIN'" });
+  }
+
   try {
     const hash = await bcrypt.hash(password, 4);
 
     await pool.query(
-      "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
-      [username, email, hash]
+      "INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4)",
+      [username, email, hash, role]
     );
 
     res.status(201).json({ message: "User registered successfully" });

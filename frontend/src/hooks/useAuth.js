@@ -88,7 +88,6 @@ export const useAuth = () => {
       loading,
       userRole,
       userInfo,
-      isAdmin: userRole === 'ADMIN',
       login,
       logout,
     };
