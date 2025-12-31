@@ -1,18 +1,19 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { bookingsAPI } from '../api/bookings';
-import { useNotification } from '../hooks/useNotification';
-import NotificationModal from '../components/NotificationModal';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { bookingsAPI } from "../api/bookings";
+import { useNotification } from "../hooks/useNotification";
+import NotificationModal from "../components/NotificationModal";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchId, setSearchId] = useState('');
+  const [searchId, setSearchId] = useState("");
   const [cancellingId, setCancellingId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState(null);
-  const { notification, showNotification, hideNotification } = useNotification();
+  const { notification, showNotification, hideNotification } =
+    useNotification();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,7 +22,7 @@ const MyBookings = () => {
         const data = await bookingsAPI.getMyBookings();
         setBookings(Array.isArray(data) ? data : []);
       } catch (error) {
-        showNotification('Failed to load bookings', 'error');
+        showNotification("Failed to load bookings", "error");
       } finally {
         setLoading(false);
       }
@@ -43,20 +44,20 @@ const MyBookings = () => {
 
     try {
       await bookingsAPI.cancelBooking(bookingToCancel);
-      showNotification('Booking cancelled successfully', 'success');
+      showNotification("Booking cancelled successfully", "success");
 
       // Update local state so the UI reflects the cancellation
       setBookings((prev) =>
         prev.map((b) =>
           b.id === bookingToCancel || b.bookingId === bookingToCancel
-            ? { ...b, status: 'cancelled' }
+            ? { ...b, status: "cancelled" }
             : b
         )
       );
     } catch (error) {
       showNotification(
-        error.response?.data?.message || 'Failed to cancel booking',
-        'error'
+        error.response?.data?.message || "Failed to cancel booking",
+        "error"
       );
     } finally {
       setCancellingId(null);
@@ -73,7 +74,7 @@ const MyBookings = () => {
     e.preventDefault();
 
     if (!searchId.trim()) {
-      showNotification('Please enter a booking ID to search', 'error');
+      showNotification("Please enter a booking ID to search", "error");
       return;
     }
 
@@ -158,6 +159,9 @@ const MyBookings = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    #
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Booking ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -178,25 +182,33 @@ const MyBookings = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredBookings.map((booking) => (
+                {filteredBookings.map((booking, idx) => (
                   <tr key={booking.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {idx + 1}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {booking.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {booking.lot_id || booking.lotId ? `Lot ${booking.lot_id || booking.lotId}` : 'N/A'}
+                      {booking.lot_id || booking.lotId
+                        ? `Lot ${booking.lot_id || booking.lotId}`
+                        : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {booking.spot_id || booking.spotId ? `Spot ${booking.spot_id || booking.spotId}` : 'N/A'}
+                      {booking.spot_id || booking.spotId
+                        ? `Spot ${booking.spot_id || booking.spotId}`
+                        : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          booking.status === 'active' || booking.status === 'pending'
-                            ? 'bg-green-100 text-green-800'
-                            : booking.status === 'cancelled'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                          booking.status === "active" ||
+                          booking.status === "pending"
+                            ? "bg-green-100 text-green-800"
+                            : booking.status === "cancelled"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {booking.status}
@@ -204,14 +216,16 @@ const MyBookings = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {booking.created_at || booking.createdAt
-                        ? new Date(booking.created_at || booking.createdAt).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
+                        ? new Date(
+                            booking.created_at || booking.createdAt
+                          ).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })
-                        : 'N/A'}
+                        : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                       <Link
@@ -220,14 +234,16 @@ const MyBookings = () => {
                       >
                         View
                       </Link>
-                      {booking.status !== 'cancelled' && (
+                      {booking.status !== "cancelled" && (
                         <button
                           type="button"
                           onClick={() => handleCancelClick(booking.id)}
                           disabled={cancellingId === booking.id}
                           className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {cancellingId === booking.id ? 'Cancelling...' : 'Cancel'}
+                          {cancellingId === booking.id
+                            ? "Cancelling..."
+                            : "Cancel"}
                         </button>
                       )}
                     </td>
@@ -272,7 +288,8 @@ const MyBookings = () => {
                 Cancel Booking?
               </h3>
               <p className="text-sm text-gray-500 text-center mb-6">
-                Are you sure you want to cancel this booking? This action cannot be undone.
+                Are you sure you want to cancel this booking? This action cannot
+                be undone.
               </p>
               <div className="flex gap-3">
                 <button
@@ -297,4 +314,3 @@ const MyBookings = () => {
 };
 
 export default MyBookings;
-

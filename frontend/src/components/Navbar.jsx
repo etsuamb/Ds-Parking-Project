@@ -15,8 +15,8 @@ const Navbar = () => {
         try {
           const payload = JSON.parse(atob(token.split(".")[1]));
           setUserInfo({
-            username: payload.username || "User",
-            email: payload.email || "",
+            username: payload.username || null,
+            email: payload.email || null,
             role: payload.role || "USER",
           });
         } catch (e) {
@@ -75,8 +75,8 @@ const Navbar = () => {
                   className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
                   title={userInfo?.email || "Profile"}
                 >
-                  <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-lg cursor-pointer hover:bg-primary-700 transition-colors">
-                    {userInfo?.username?.charAt(0).toUpperCase() || "U"}
+                  <div className="text-sm font-medium text-gray-700">
+                    {userInfo?.username || userInfo?.email || "User"}
                   </div>
                 </Link>
                 <button
@@ -99,18 +99,6 @@ const Navbar = () => {
                   className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Register
-                </Link>
-                <Link
-                  to="/admin/login"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600"
-                >
-                  Admin Login
-                </Link>
-                <Link
-                  to="/admin/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                >
-                  Admin Register
                 </Link>
               </div>
             )}
