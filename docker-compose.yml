@@ -76,18 +76,10 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      auth-db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      PORT: 3000
-      DB_HOST: auth-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: pgforcss
-      DB_NAME: auth_db
-      JWT_SECRET: my-super-secret-key-for-parking-app-2025!@#$%^&*
+      - redis
+      - auth-db
+    env_file:
+      - ./backend/services/auth-service/src/.env
 
   booking-service:
     build: ./backend/services/booking-service
@@ -95,18 +87,10 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      booking-db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      PORT: 3001
-      DB_HOST: booking-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: pgforcss
-      DB_NAME: booking_db
-      JWT_SECRET: my-super-secret-key-for-parking-app-2025!@#$%^&*
+      - booking-db
+      - redis
+    env_file:
+      - ./backend/services/booking-service/src/.env
 
   parking-service:
     build: ./backend/services/parking-service
@@ -114,18 +98,10 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      parking-db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      PORT: 3002
-      DB_HOST: parking-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: pgforcss
-      DB_NAME: parking_db
-      JWT_SECRET: my-super-secret-key-for-parking-app-2025!@#$%^&*
+      - parking-db
+      - redis
+    env_file:
+      - ./backend/services/parking-service/src/.env
 
   notification-service:
     build: ./backend/services/notification-service
@@ -163,4 +139,20 @@ services:
     depends_on:
       - api-gateway
     environment:
-      VITE_API_URL: http://localhost:8080
+      - VITE_API_URL=http://localhost:8080
+
+  admin-frontend:
+    build: ./admin-frontend
+    ports:
+      - "5174:80"
+    depends_on:
+      - api-gateway
+    environment:
+      - VITE_API_URL=http://localhost:8080
+
+# Optional: persistent data (remove comment if you want data to survive down -v)
+# volumes:
+#   booking-data:
+#   parking-data:
+#   auth-data:
+

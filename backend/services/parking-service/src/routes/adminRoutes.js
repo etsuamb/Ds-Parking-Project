@@ -5,77 +5,169 @@ import { pool } from "../db/index.js";
 
 const router = express.Router();
 
-router.get('/lots', authenticate, isAdmin, async (req, res) => {
+// GET /admin/parking/lots - List all parking lots with details
+router.get('/parking/lots', authenticate, isAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT l.id, l.name, l.total_spots, 
-             COUNT(s.id) FILTER (WHERE s.status = 'RESERVED') AS reserved_spots
-      FROM parking_lots l
-      LEFT JOIN parking_spots s ON l.id = s.lot_id
-      GROUP BY l.id
+      SELECT lot_id AS id,
+             COUNT(*) AS "totalSpots",
+             COUNT(*) FILTER (WHERE is_reserved = false) AS "availableSpots",
+             COUNT(*) FILTER (WHERE is_reserved = true) AS "reservedSpots"
+      FROM parking_spots
+      GROUP BY lot_id
+      ORDER BY lot_id
     `);
-    rows.forEach(row => {
-      row.available_spots = row.total_spots - row.reserved_spots;
-    });
     res.json(rows);
   } catch (err) {
+    console.error("Error fetching parking lots:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Create a new parking lot
-router.post('/lots', authenticate, isAdmin, async (req, res) => {
-  const { name, total_spots } = req.body;
+// POST /admin/parking/lots - Create a new parking lot
+router.post('/parking/lots', authenticate, isAdmin, async (req, res) => {
+  const { lotId, name, spotNumbers } = req.body;
 
-  if (!name || !total_spots) {
-    return res.status(400).json({ error: 'Name and total_spots are required' });
+  if (!lotId) {
+    return res.status(400).json({ error: "lotId is required" });
+  }
+
+  if (!spotNumbers || !Array.isArray(spotNumbers) || spotNumbers.length === 0) {
+    return res.status(400).json({ error: "spotNumbers array is required" });
   }
 
   try {
-    const { rows } = await pool.query(
-      'INSERT INTO parking_lots (name, total_spots) VALUES ($1, $2) RETURNING *',
-      [name, total_spots]
+    // Check if lot already exists
+    const existing = await pool.query(
+      "SELECT COUNT(*) FROM parking_spots WHERE lot_id = $1",
+      [lotId]
     );
-    res.status(201).json(rows[0]);
+
+    if (parseInt(existing.rows[0].count) > 0) {
+      return res.status(409).json({ error: "Parking lot already exists" });
+    }
+
+    // Insert all spots for this lot
+    for (const spotNumber of spotNumbers) {
+      await pool.query(
+        "INSERT INTO parking_spots (lot_id, spot_number) VALUES ($1, $2)",
+        [lotId, spotNumber]
+      );
+    }
+
+    res.status(201).json({ 
+      message: "Parking lot created successfully",
+      lotId,
+      totalSpots: spotNumbers.length
+    });
   } catch (err) {
-    console.error('Error creating parking lot:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error creating parking lot:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Add a parking spot to a lot
-router.post('/lots/:lotId/spots', authenticate, isAdmin, async (req, res) => {
-  const { lotId } = req.params;
-  const { spot_number, vehicle_type } = req.body;
+// POST /admin/parking/spots - Add parking spots to an existing lot
+router.post('/parking/spots', authenticate, isAdmin, async (req, res) => {
+  const { lotId, spotNumbers } = req.body;
 
-  if (!spot_number) {
-    return res.status(400).json({ error: 'Spot number is required' });
+  if (!lotId || !spotNumbers || !Array.isArray(spotNumbers) || spotNumbers.length === 0) {
+    return res.status(400).json({ error: "lotId and spotNumbers array are required" });
   }
 
   try {
     // Check if lot exists
-    const lotCheck = await pool.query('SELECT id FROM parking_lots WHERE id = $1', [lotId]);
-    if (lotCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Parking lot not found' });
+    const lotCheck = await pool.query(
+      "SELECT COUNT(*) FROM parking_spots WHERE lot_id = $1",
+      [lotId]
+    );
+
+    if (parseInt(lotCheck.rows[0].count) === 0) {
+      return res.status(404).json({ error: "Parking lot not found" });
     }
 
-    // Check if spot number already exists in this lot
-    const spotCheck = await pool.query(
-      'SELECT id FROM parking_spots WHERE lot_id = $1 AND spot_number = $2',
-      [lotId, spot_number]
-    );
-    if (spotCheck.rows.length > 0) {
-      return res.status(400).json({ error: 'Spot number already exists in this lot' });
+    // Insert new spots
+    for (const spotNumber of spotNumbers) {
+      await pool.query(
+        "INSERT INTO parking_spots (lot_id, spot_number) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [lotId, spotNumber]
+      );
     }
 
-    const { rows } = await pool.query(
-      'INSERT INTO parking_spots (lot_id, spot_number, vehicle_type, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [lotId, spot_number, vehicle_type || 'CAR', 'AVAILABLE']
-    );
-    res.status(201).json(rows[0]);
+    res.status(201).json({ 
+      message: "Parking spots added successfully",
+      lotId,
+      spotsAdded: spotNumbers.length
+    });
   } catch (err) {
-    console.error('Error adding parking spot:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error adding parking spots:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PUT /admin/parking/lots/:id - Update parking lot (currently just returns info, can be extended)
+router.put('/parking/lots/:id', authenticate, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body; // For future extension if we add a lots table
+
+  try {
+    // Check if lot exists
+    const lotCheck = await pool.query(
+      "SELECT COUNT(*) FROM parking_spots WHERE lot_id = $1",
+      [id]
+    );
+
+    if (parseInt(lotCheck.rows[0].count) === 0) {
+      return res.status(404).json({ error: "Parking lot not found" });
+    }
+
+    // For now, just return success (can be extended when lots table is added)
+    res.json({ 
+      message: "Parking lot updated successfully",
+      lotId: id
+    });
+  } catch (err) {
+    console.error("Error updating parking lot:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /admin/parking/lots/:id - Delete parking lot (deletes all spots)
+router.delete('/parking/lots/:id', authenticate, isAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Check if lot exists
+    const lotCheck = await pool.query(
+      "SELECT COUNT(*) FROM parking_spots WHERE lot_id = $1",
+      [id]
+    );
+
+    if (parseInt(lotCheck.rows[0].count) === 0) {
+      return res.status(404).json({ error: "Parking lot not found" });
+    }
+
+    // Check if any spots are reserved
+    const reservedCheck = await pool.query(
+      "SELECT COUNT(*) FROM parking_spots WHERE lot_id = $1 AND is_reserved = true",
+      [id]
+    );
+
+    if (parseInt(reservedCheck.rows[0].count) > 0) {
+      return res.status(400).json({ 
+        error: "Cannot delete parking lot with reserved spots. Cancel bookings first." 
+      });
+    }
+
+    // Delete all spots for this lot
+    await pool.query(
+      "DELETE FROM parking_spots WHERE lot_id = $1",
+      [id]
+    );
+
+    res.json({ message: "Parking lot deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting parking lot:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

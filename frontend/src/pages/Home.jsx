@@ -1,44 +1,43 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import Logo from '../components/Logo';
+import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import Logo from "../components/Logo";
 
 const Home = () => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   // Don't show auth-dependent content until loading is complete
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-b-2"
+          style={{ borderColor: "var(--accent)" }}
+        ></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
           <div className="flex justify-center items-center mb-6">
             <Logo className="w-20 h-20" />
           </div>
-          <h1 className="text-5xl font-extrabold text-gray-900 sm:text-6xl">
-            <span className="text-primary-600">Smart Parking</span> System
+          <h1 className="text-5xl font-extrabold text-gray-200 sm:text-6xl">
+            <span className="text-primary-600 link-accent">Smart Parking</span>{" "}
+            System
           </h1>
-          <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto">
-            Find and reserve parking spots effortlessly. Real-time availability, instant bookings, and seamless management.
+          <p className="mt-6 text-xl text-muted max-w-3xl mx-auto">
+            Find and reserve parking spots effortlessly. Real-time availability,
+            instant bookings, and seamless management.
           </p>
           <div className="mt-10 flex justify-center gap-4">
-            <Link
-              to="/parking"
-              className="px-8 py-3 text-lg font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition"
-            >
+            <Link to="/parking" className="btn-primary">
               Browse Parking Lots
             </Link>
             {!isAuthenticated && (
-              <Link
-                to="/register"
-                className="px-8 py-3 text-lg font-semibold text-primary-600 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition border-2 border-primary-600"
-              >
+              <Link to="/register" className="btn-ghost">
                 Get Started
               </Link>
             )}
@@ -46,20 +45,34 @@ const Home = () => {
         </div>
 
         <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3">
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="app-card rounded-lg p-6">
             <div className="text-4xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Find Spots</h3>
-            <p className="text-gray-600">Browse available parking lots and see real-time spot availability.</p>
+            <h3 className="text-xl font-semibold text-gray-200 mb-2">
+              Find Spots
+            </h3>
+            <p className="text-muted">
+              Browse available parking lots and see real-time spot availability.
+            </p>
           </div>
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="app-card rounded-lg p-6">
             <div className="text-4xl mb-4">📅</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Book Instantly</h3>
-            <p className="text-gray-600">Reserve your parking spot in seconds with our streamlined booking process.</p>
+            <h3 className="text-xl font-semibold text-gray-200 mb-2">
+              Book Instantly
+            </h3>
+            <p className="text-muted">
+              Reserve your parking spot in seconds with our streamlined booking
+              process.
+            </p>
           </div>
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="app-card rounded-lg p-6">
             <div className="text-4xl mb-4">🔔</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Real-time Updates</h3>
-            <p className="text-gray-600">Receive instant notifications about your bookings and spot availability.</p>
+            <h3 className="text-xl font-semibold text-gray-200 mb-2">
+              Real-time Updates
+            </h3>
+            <p className="text-muted">
+              Receive instant notifications about your bookings and spot
+              availability.
+            </p>
           </div>
         </div>
       </div>
@@ -68,4 +81,3 @@ const Home = () => {
 };
 
 export default Home;
-
