@@ -213,6 +213,22 @@ backend/
          └─ handlers/
             └─ spotReserved.handler.js
 ```
+## Docker feature
+This repo uses Docker with a root docker-compose.yml to build and run the whole stack (API gateway, microservices, frontends, and DB). Each service has a Dockerfile (e.g., frontend, admin-frontend, backend/services/*/) and DB init scripts live in init-sql.
+
+Quick commands
+```bash
+Start: docker compose up --build
+Stop: docker compose down
+Rebuild a service: docker compose build <service>
+```
+
+Where to look
+```
+Main orchestrator: docker-compose.yml
+Service definitions: Dockerfile
+DB initialization: init-sql
+```
 
 ## 🚀 Quick Start (Run with Docker)
 
