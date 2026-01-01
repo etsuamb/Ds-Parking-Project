@@ -5,10 +5,11 @@ import { useAuth } from "./hooks/useAuth";
 import { useNotification } from "./hooks/useNotification";
 
 // Components
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
-import ProtectedRoute from "./components/ProtectedRoute";
-import NotificationModal from "./components/NotificationModal";
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import ProtectedRoute from './components/ProtectedRoute';
+import NotificationModal from './components/NotificationModal';
+import Footer from './components/Footer';
 
 // Admin Components
 import AdminRoutes from './admin/router/AdminRoutes';
@@ -125,6 +126,7 @@ function AppContent() {
           </Routes>
         </main>
       </div>
+      {!isAdminPath && <Footer />}
       {notification && (
         <NotificationModal
           message={notification.message}
