@@ -1,4 +1,6 @@
-<img width="1280" height="689" alt="image" src="https://github.com/user-attachments/assets/e9efad1b-4987-4074-a40f-805a5d12bde3" /># 🚗 Distributed Smart Parking Booking System
+<img width="1321" height="615" alt="image" src="https://github.com/user-attachments/assets/c924bde1-a168-48f5-b3cd-db1e11d499f3" />
+
+# 🚗 Distributed Smart Parking Booking System
 
 A distributed, microservices-based Smart Parking Booking System that allows users to view parking availability, book parking spots, and receive notifications.  
 The system is designed using **microservices architecture**, **API Gateway**, and **Docker**, ensuring scalability, fault isolation, and maintainability.
@@ -111,7 +113,6 @@ cd <your-project-folder>
 | Booking Service    | [http://localhost:3001](http://localhost:3001) |
 | Parking Service    | [http://localhost:3002](http://localhost:3002) |
 
-<img width="1321" height="615" alt="image" src="https://github.com/user-attachments/assets/c924bde1-a168-48f5-b3cd-db1e11d499f3" />
 
 <img width="1273" height="618" alt="image" src="https://github.com/user-attachments/assets/3c9405c5-6a9e-4a24-8d80-6cd451d37ee8" />
 
