@@ -9,6 +9,7 @@ const LoadingSpinner = ({ size = 'md' }) => {
     <div className="flex justify-center items-center">
       <div
         className={`animate-spin rounded-full border-b-2 border-primary-600 ${sizeClasses[size]}`}
+        // A loading spinner used to indicate loading state
       ></div>
     </div>
   );
