@@ -69,10 +69,8 @@ The system follows a **distributed microservices architecture**:
 ---
 
 ## 📂 Project Structure (Simplified)
-
+  ### Frontend
 ```text
-.
-Frontend
 frontend/
 ├─ .gitignore
 ├─ Dockerfile
@@ -117,7 +115,10 @@ frontend/
       ├─ MyBookings.jsx
       ├─ BookingDetails.jsx
       └─ NotFound.jsx
-Backend
+```
+
+### Backend
+```
 backend/
 ├─ README.md
 ├─ docs/
