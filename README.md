@@ -72,20 +72,145 @@ The system follows a **distributed microservices architecture**:
 
 ```text
 .
-├── backend
-│   ├── services
-│   │   ├── api-gateway
-│   │   ├── auth-service
-│   │   ├── booking-service
-│   │   ├── parking-service
-│   │   └── notification-service
-│   └── init-sql
-│       ├── auth-init.sql
-│       ├── booking-init.sql
-│       └── parking-init.sql
-├── frontend
-├── docker-compose.yml
-└── README.md
+Frontend
+frontend/
+├─ .gitignore
+├─ Dockerfile
+├─ nginx.conf
+├─ index.html
+├─ package.json
+├─ package-lock.json
+├─ postcss.config.js
+├─ tailwind.config.js
+├─ vite.config.js
+└─ src/
+   ├─ main.jsx
+   ├─ App.jsx
+   ├─ index.css
+   ├─ api/
+   │  ├─ axios.js
+   │  ├─ auth.js
+   │  ├─ bookings.js
+   │  └─ parking.js
+   ├─ hooks/
+   │  ├─ AuthEvents.js
+   │  ├─ useAuth.js
+   │  └─ useNotification.js
+   ├─ utils/
+   │  └─ socket.js
+   ├─ components/
+   │  ├─ Navbar.jsx
+   │  ├─ Logo.jsx
+   │  ├─ LoadingSpinner.jsx
+   │  ├─ ProtectedRoute.jsx
+   │  ├─ Sidebar.jsx
+   │  └─ NotificationModal.jsx
+   └─ pages/
+      ├─ Home.jsx
+      ├─ Dashboard.jsx
+      ├─ Login.jsx
+      ├─ Register.jsx
+      ├─ Profile.jsx
+      ├─ Parking.jsx
+      ├─ ParkingLotDetails.jsx
+      ├─ CreateBooking.jsx
+      ├─ MyBookings.jsx
+      ├─ BookingDetails.jsx
+      └─ NotFound.jsx
+Backend
+backend/
+├─ README.md
+├─ docs/
+│  ├─ openapi.yaml
+│  └─ event/
+│     ├─ booking.created.json
+│     ├─ booking.cancelled.json
+│     ├─ parking.spot.reserved.json
+│     └─ parking.spot.released.json
+├─ init-sql/
+│  ├─ auth-init.sql
+│  ├─ booking-init.sql
+│  └─ parking-init.sql
+└─ services/
+   ├─ api-gateway/
+   │  ├─ Dockerfile
+   │  ├─ package.json
+   │  ├─ package-lock.json
+   │  ├─ server.js
+   │  └─ config/
+   │     ├─ gateway.config.yml
+   │     ├─ system.config.yml
+   │     └─ models/
+   │        ├─ applications.json
+   │        ├─ credentials.json
+   │        └─ users.json
+   ├─ auth-service/
+   │  ├─ Dockerfile
+   │  ├─ package.json
+   │  ├─ package-lock.json
+   │  └─ src/
+   │     ├─ .env
+   │     ├─ index.js
+   │     ├─ controllers/
+   │     │  └─ auth.controller.js
+   │     ├─ db/
+   │     │  └─ index.js
+   │     ├─ routes/
+   │     │  └─ auth.routes.js
+   │     └─ utils/
+   │        └─ jwt.js
+   ├─ booking-service/
+   │  ├─ Dockerfile
+   │  ├─ package.json
+   │  ├─ package-lock.json
+   │  └─ src/
+   │     ├─ .env
+   │     ├─ app.js
+   │     ├─ server.js
+   │     ├─ controllers/
+   │     │  └─ bookings.controller.js
+   │     ├─ routes/
+   │     │  ├─ bookings.routes.js
+   │     │  └─ adminRoutes.js
+   │     ├─ middleware/
+   │     │  ├─ authenticate.js
+   │     │  └─ isAdmin.js
+   │     ├─ data/
+   │     │  └─ bookings.store.js
+   │     └─ messaging/
+   │        └─ eventPublisher.js
+   ├─ parking-service/
+   │  ├─ Dockerfile
+   │  ├─ package.json
+   │  ├─ package-lock.json
+   │  └─ src/
+   │     ├─ .env
+   │     ├─ index.js
+   │     ├─ db/
+   │     │  └─ index.js
+   │     ├─ routes/
+   │     │  └─ parking.routes.js
+   │     ├─ services/
+   │     │  └─ parking.service.js
+   │     ├─ middleware/
+   │     │  ├─ authenticate.js
+   │     │  └─ isAdmin.js
+   │     ├─ messaging/
+   │     │  ├─ eventPublisher.js
+   │     │  └─ eventSubscriber.js
+   │     └─ events/
+   │        ├─ bookingCreated.handler.js
+   │        └─ bookingCancelled.handler.js
+   └─ notification-service/
+      ├─ Dockerfile
+      ├─ package.json
+      ├─ package-lock.json
+      └─ src/
+         ├─ index.js
+         ├─ messaging/
+         │  └─ eventSubscriber.js
+         └─ handlers/
+            └─ spotReserved.handler.js
 ```
 
 ## 🚀 Quick Start (Run with Docker)
