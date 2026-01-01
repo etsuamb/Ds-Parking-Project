@@ -1,103 +1,45 @@
 openapi: 3.0.3
 info:
-  title: Distributed Parking System API
-  description: API Gateway for Auth, Booking, Parking, and Notification services
+  title: Distributed Smart Parking System API
+  description: |
+    OpenAPI specification for the Distributed Smart Parking System. All client requests go through the API Gateway. Authentication uses JWT. Admin access is role-based.
   version: 1.0.0
-
 servers:
-  - url: http://localhost:8080
-    description: API Gateway
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    RegisterRequest:
-      type: object
-      required: [username, password]
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-
-    LoginRequest:
-      type: object
-      required: [username, password]
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-
-    AuthResponse:
-      type: object
-      properties:
-        token:
-          type: string
-
-    BookingRequest:
-      type: object
-      required: [lotId]
-      properties:
-        lotId:
-          type: string
-
-    Booking:
-      type: object
-      properties:
-        id:
-          type: integer
-        user_id:
-          type: integer
-        lot_id:
-          type: string
-        spot_id:
-          type: integer
-        status:
-          type: string
-          enum: [ACTIVE, CANCELLED]
-        created_at:
-          type: string
-          format: date-time
-
-    ParkingLotSummary:
-      type: object
-      properties:
-        lot_id:
-          type: string
-        total:
-          type: integer
-        available:
-          type: integer
-
+- url: http://localhost:8080
+  description: API Gateway
+tags:
+- name: Auth
+- name: Parking
+- name: Booking
+- name: Admin
 paths:
   /auth/register:
     post:
+      tags:
+      - Auth
       summary: Register a new user
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/RegisterRequest"
+        required: true
       responses:
         "201":
           description: User registered successfully
-
+        "400":
+          description: Invalid input
   /auth/login:
     post:
-      summary: Login and get JWT
+      tags:
+      - Auth
+      summary: Login user or admin
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/LoginRequest"
+        required: true
       responses:
         "200":
           description: Login successful
@@ -105,77 +47,216 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
-
-  /bookings:
-    post:
-      summary: Create a booking
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BookingRequest"
-      responses:
-        "201":
-          description: Booking created
-
-  /bookings/{bookingId}:
-    get:
-      summary: Get booking details
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Booking found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Booking"
-
-    delete:
-      summary: Cancel a booking
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Booking cancelled
-
+        "401":
+          description: Invalid credentials
   /parking/lots:
     get:
-      summary: List parking lots with availability
+      tags:
+      - Parking
+      summary: Get all parking lots
       responses:
         "200":
-          description: Parking lots
+          description: List of parking lots
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ParkingLotSummary"
-
+                  $ref: "#/components/schemas/ParkingLot"
   /parking/lots/{lotId}:
     get:
+      tags:
+      - Parking
       summary: Get parking lot details
       parameters:
-        - name: lotId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: lotId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
         "200":
           description: Parking lot details
+        "404":
+          description: Lot not found
+  /bookings:
+    post:
+      tags:
+      - Booking
+      summary: Create a booking
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/bookings_body"
+        required: true
+      responses:
+        "201":
+          description: Booking created
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+  /bookings/{id}:
+    get:
+      tags:
+      - Booking
+      summary: Get booking by ID
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Booking details
+        "404":
+          description: Booking not found
+      security:
+      - BearerAuth: []
+    delete:
+      tags:
+      - Booking
+      summary: Cancel booking
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Booking cancelled
+      security:
+      - BearerAuth: []
+  /bookings/user/me:
+    get:
+      tags:
+      - Booking
+      summary: Get bookings for logged-in user
+      responses:
+        "200":
+          description: User bookings list
+      security:
+      - BearerAuth: []
+  /admin/bookings:
+    get:
+      tags:
+      - Admin
+      summary: Admin - View all bookings
+      responses:
+        "200":
+          description: List of all bookings
+        "403":
+          description: Admin access required
+      security:
+      - BearerAuth: []
+  /admin/bookings/{id}/cancel:
+    post:
+      tags:
+      - Admin
+      summary: Admin - Force cancel booking
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Booking cancelled by admin
+        "403":
+          description: Admin access required
+      security:
+      - BearerAuth: []
+  /admin/parking/lots:
+    post:
+      tags:
+      - Admin
+      summary: Admin - Create parking lot
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/parking_lots_body"
+        required: true
+      responses:
+        "201":
+          description: Parking lot created
+        "403":
+          description: Admin access required
+      security:
+      - BearerAuth: []
+components:
+  schemas:
+    RegisterRequest:
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@example.com
+        password:
+          type: string
+          example: password123
+    LoginRequest:
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    ParkingLot:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        availableSpots:
+          type: integer
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        lotId:
+          type: integer
+        spotNumber:
+          type: integer
+        status:
+          type: string
+          example: CONFIRMED
+    bookings_body:
+      required:
+      - lotId
+      type: object
+      properties:
+        lotId:
+          type: integer
+    parking_lots_body:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

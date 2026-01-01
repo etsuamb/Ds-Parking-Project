@@ -32,6 +32,17 @@ const DashboardIcon = ({ className = "w-5 h-5" }) => (
     <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zM13 21h8v-10h-8v10zm0-18v6h8V3h-8z" />
   </svg>
 );
+// Simple list icon for My Bookings
+const ListIcon = ({ className = "w-5 h-5" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M3 5h2v2H3V5zm0 4h2v2H3V9zm0 4h2v2H3v-2zm4-8h10v2H7V5zm0 4h10v2H7V9zm0 4h10v2H7v-2z" />
+  </svg>
+);
 const PlusIcon = ({ className = "w-5 h-5" }) => (
   <svg
     className={className}
@@ -70,6 +81,7 @@ const Sidebar = () => {
     { path: "/", label: "Home", Icon: HomeIcon },
     { path: "/parking", label: "Parking Lots", Icon: ParkingIcon },
     { path: "/dashboard", label: "Dashboard", Icon: DashboardIcon },
+    { path: "/bookings", label: "My Bookings", Icon: ListIcon },
     { path: "/bookings/new", label: "New Booking", Icon: PlusIcon },
   ];
 
